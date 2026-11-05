@@ -1,0 +1,6 @@
+Model,Accuracy,Macro F1,Train time (s)
+Linear SVM,0.597,0.567,0.09
+Logistic Regression,0.586,0.561,0.71
+Random Forest,0.615,0.513,3.82
+Naive Bayes,0.619,0.448,0.02
+Baseline (most frequent),0.41,0.194,0.0
