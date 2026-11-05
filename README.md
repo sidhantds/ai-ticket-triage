@@ -490,7 +490,7 @@ The suite has 13 tests covering:
 
 ## Author
 
-**Sidhant Pujara**
+**Siddhant Pujara**
 AI/ML Intern | Hitachi Digital
 [GitHub @sidhantds](https://github.com/sidhantds)
 
