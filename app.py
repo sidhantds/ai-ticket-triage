@@ -213,7 +213,16 @@ if "triage_result" not in st.session_state:
 st.markdown("""
 <style>
 .block-container {max-width: 1180px; padding-top: 2rem; padding-bottom: 2rem;}
-[data-testid="stSidebar"] {border-right: 1px solid #E5E7EB;}
+[data-testid="stSidebar"] {
+    background-color: #0B1F3A;
+    border-right: 1px solid #172B4D;
+}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
+    color: #CBD5E1;
+}
+[data-testid="stSidebar"] hr {
+    border-color: rgba(203, 213, 225, 0.18);
+}
 [data-testid="stMetric"] {
     border: 1px solid #E5E7EB;
     border-radius: 8px;
@@ -249,20 +258,20 @@ with st.sidebar:
         styles={
             "container": {
                 "padding": "0.5rem 0 0 0",
-                "background-color": "#FFFFFF",
+                "background-color": "#0B1F3A",
             },
             "menu-title": {
                 "font-size": "18px",
                 "font-weight": "700",
-                "color": "#1F2937",
+                "color": "#F8FAFC",
                 "padding": "0 0.75rem 0.75rem 0.75rem",
             },
             "menu-icon": {
-                "color": "#4B5563",
+                "color": "#CBD5E1",
                 "font-size": "18px",
             },
             "icon": {
-                "color": "#4B5563",
+                "color": "#CBD5E1",
                 "font-size": "16px",
             },
             "nav-link": {
@@ -271,12 +280,12 @@ with st.sidebar:
                 "margin": "2px 0",
                 "padding": "0.65rem 0.75rem",
                 "border-radius": "6px",
-                "--hover-color": "#F3F4F6",
-                "color": "#374151",
+                "--hover-color": "#172B4D",
+                "color": "#CBD5E1",
             },
             "nav-link-selected": {
-                "background-color": "#E5E7EB",
-                "color": "#111827",
+                "background-color": "#1E3A5F",
+                "color": "#FFFFFF",
                 "font-weight": "600",
             },
         },

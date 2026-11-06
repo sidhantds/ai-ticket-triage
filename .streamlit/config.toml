@@ -8,5 +8,5 @@ font = "sans serif"
 baseRadius = "small"
 
 [theme.sidebar]
-backgroundColor = "#FFFFFF"
-borderColor = "#E5E7EB"
+backgroundColor = "#0B1F3A"
+borderColor = "#172B4D"
