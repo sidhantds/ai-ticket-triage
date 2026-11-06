@@ -205,6 +205,17 @@ def save_ticket(subject, body, result):
     return ticket_id
 
 
+def update_ticket_management(ticket_id, category, priority, status, sla_hours):
+    with get_connection() as connection:
+        connection.execute(
+            """UPDATE predictions
+               SET predicted_category = ?, predicted_priority = ?, status = ?, sla_hours = ?
+               WHERE ticket_id = ?""",
+            (category, priority, status, sla_hours, ticket_id),
+        )
+    run_query.clear()
+
+
 create_tables()
 
 if "triage_result" not in st.session_state:
@@ -228,7 +239,31 @@ st.markdown("""
     border-radius: 8px;
     padding: 16px;
     background: #FFFFFF;
+    min-height: 112px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
+div[data-testid="stMetric"] [data-testid="stMetricLabel"] {
+    color: #64748B;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.dashboard-section {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background: #FFFFFF;
+    padding: 16px;
+}
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+.status-auto {background-color: #DCFCE7; color: #166534;}
+.status-review {background-color: #FEF3C7; color: #92400E;}
 .stTabs [data-baseweb="tab-list"] {gap: 12px;}
 .priority-badge {
     display: inline-block;
@@ -664,6 +699,17 @@ elif page == "Ticket Register":
             filtered = filtered.sort_values("ticket_id", ascending=True)
 
         st.caption(f"{len(filtered)} matching tickets")
+        auto_count = int((filtered["status"] == "Auto-Routed").sum())
+        review_count = int((filtered["status"] == "Needs Human Review").sum())
+        s1, s2, _ = st.columns([1, 1, 4])
+        s1.markdown(
+            f'<span class="status-indicator status-auto">{auto_count} Auto-Routed</span>',
+            unsafe_allow_html=True,
+        )
+        s2.markdown(
+            f'<span class="status-indicator status-review">{review_count} Needs Review</span>',
+            unsafe_allow_html=True,
+        )
         priority_styles = (
             filtered.style.map(
                 lambda value: (
@@ -699,6 +745,79 @@ elif page == "Ticket Register":
                 "body": None,
             },
         )
+        with st.expander("Manage selected ticket", expanded=False):
+            selected_ticket = st.selectbox(
+                "Ticket",
+                filtered["ticket_id"].tolist(),
+                format_func=lambda ticket_id: f"Ticket #{ticket_id}",
+                key="register_selected_ticket",
+            )
+            selected_row = filtered.loc[filtered["ticket_id"] == selected_ticket].iloc[0]
+            detail_left, detail_right = st.columns([2, 1])
+            with detail_left:
+                st.text_input(
+                    "Subject",
+                    value=str(selected_row.get("subject", "") or ""),
+                    disabled=True,
+                    key=f"register_subject_{selected_ticket}",
+                )
+                st.text_area(
+                    "Ticket body",
+                    value=str(selected_row.get("body", "") or ""),
+                    height=180,
+                    disabled=True,
+                    key=f"register_body_{selected_ticket}",
+                )
+            with detail_right:
+                category_options = sorted(history["category"].dropna().unique())
+                current_category = str(selected_row["category"])
+                if current_category not in category_options:
+                    category_options.append(current_category)
+                updated_category = st.selectbox(
+                    "Category",
+                    category_options,
+                    index=category_options.index(current_category),
+                    key=f"register_category_{selected_ticket}",
+                )
+                updated_priority = st.selectbox(
+                    "Priority",
+                    ["high", "medium", "low"],
+                    index=(["high", "medium", "low"].index(str(selected_row["priority"]).lower())
+                            if str(selected_row["priority"]).lower() in ["high", "medium", "low"]
+                            else 2),
+                    key=f"register_priority_edit_{selected_ticket}",
+                )
+                status_options = ["Auto-Routed", "Needs Human Review"]
+                current_status = str(selected_row["status"])
+                updated_status = st.selectbox(
+                    "Status",
+                    status_options,
+                    index=status_options.index(current_status)
+                    if current_status in status_options else 0,
+                    key=f"register_status_edit_{selected_ticket}",
+                )
+                current_sla = int(selected_row["sla_hours"] or SLA_HOURS[updated_priority])
+                updated_sla = st.number_input(
+                    "SLA hours",
+                    min_value=1,
+                    max_value=168,
+                    value=current_sla,
+                    key=f"register_sla_{selected_ticket}",
+                )
+                if st.button(
+                    "Save ticket changes",
+                    type="primary",
+                    key=f"register_save_{selected_ticket}",
+                ):
+                    update_ticket_management(
+                        selected_ticket,
+                        updated_category,
+                        updated_priority,
+                        updated_status,
+                        int(updated_sla),
+                    )
+                    st.success(f"Ticket #{selected_ticket} updated.")
+                    st.rerun()
         st.download_button(
             "Download filtered CSV",
             filtered.to_csv(index=False),
@@ -746,29 +865,41 @@ elif page == "Operations Dashboard":
         c2.metric("High priority", high)
         c3.metric("Automation rate", f"{(total - review) / total * 100:.1f}%" if total else "0%")
         c4.metric("Average confidence", f"{confidence:.1f}%")
+        auto_count = total - review
+        d1, d2, _ = st.columns([1, 1, 4])
+        d1.markdown(
+            f'<span class="status-indicator status-auto">{auto_count} Auto-Routed</span>',
+            unsafe_allow_html=True,
+        )
+        d2.markdown(
+            f'<span class="status-indicator status-review">{review} Needs Review</span>',
+            unsafe_allow_html=True,
+        )
 
         category_counts = filtered.groupby("predicted_category").size().reset_index(name="tickets")
         priority_counts = filtered.groupby("predicted_priority").size().reset_index(name="tickets")
         left, right = st.columns(2)
         with left:
-            st.subheader("Tickets by category")
-            fig = px.bar(category_counts, x="predicted_category", y="tickets", text="tickets",
-                         color_discrete_sequence=["#4B5563"])
-            fig.update_layout(showlegend=False, xaxis_title="", yaxis_title="Tickets",
-                              margin={"l": 20, "r": 20, "t": 20, "b": 20})
-            st.plotly_chart(fig, use_container_width=True)
+            with st.container(border=True):
+                st.subheader("Tickets by category")
+                fig = px.bar(category_counts, x="predicted_category", y="tickets", text="tickets",
+                             color_discrete_sequence=["#4B5563"])
+                fig.update_layout(showlegend=False, xaxis_title="", yaxis_title="Tickets",
+                                  margin={"l": 20, "r": 20, "t": 20, "b": 20})
+                st.plotly_chart(fig, use_container_width=True)
         with right:
-            st.subheader("Tickets by priority")
-            fig = px.pie(priority_counts, names="predicted_priority", values="tickets",
-                         hole=0.55,
-                         color="predicted_priority",
-                         color_discrete_map={
-                             "high": "#DC2626",
-                             "medium": "#F97316",
-                             "low": "#16A34A",
-                         })
-            fig.update_layout(margin={"l": 20, "r": 20, "t": 20, "b": 20})
-            st.plotly_chart(fig, use_container_width=True)
+            with st.container(border=True):
+                st.subheader("Tickets by priority")
+                fig = px.pie(priority_counts, names="predicted_priority", values="tickets",
+                             hole=0.55,
+                             color="predicted_priority",
+                             color_discrete_map={
+                                 "high": "#DC2626",
+                                 "medium": "#F97316",
+                                 "low": "#16A34A",
+                             })
+                fig.update_layout(margin={"l": 20, "r": 20, "t": 20, "b": 20})
+                st.plotly_chart(fig, use_container_width=True)
 
 
 elif page == "Model Card":
