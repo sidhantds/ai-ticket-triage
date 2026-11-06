@@ -218,7 +218,7 @@ st.markdown("""
     border-right: 1px solid #172B4D;
 }
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {
-    color: #CBD5E1;
+    color: #FFFFFF;
 }
 [data-testid="stSidebar"] hr {
     border-color: rgba(203, 213, 225, 0.18);
@@ -263,15 +263,15 @@ with st.sidebar:
             "menu-title": {
                 "font-size": "18px",
                 "font-weight": "700",
-                "color": "#F8FAFC",
+                "color": "#FFFFFF",
                 "padding": "0 0.75rem 0.75rem 0.75rem",
             },
             "menu-icon": {
-                "color": "#CBD5E1",
+                "color": "#FFFFFF",
                 "font-size": "18px",
             },
             "icon": {
-                "color": "#CBD5E1",
+                "color": "#FFFFFF",
                 "font-size": "16px",
             },
             "nav-link": {
@@ -281,7 +281,7 @@ with st.sidebar:
                 "padding": "0.65rem 0.75rem",
                 "border-radius": "6px",
                 "--hover-color": "#172B4D",
-                "color": "#CBD5E1",
+                "color": "#FFFFFF",
             },
             "nav-link-selected": {
                 "background-color": "#1E3A5F",
