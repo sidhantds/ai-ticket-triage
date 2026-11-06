@@ -71,6 +71,9 @@ This project demonstrates an AI-assisted triage workflow that:
 - **Explainability:** shows the top TF-IDF terms pushing the ticket toward its predicted category (TF-IDF weight × model coefficient).
 - **Confidence-aware routing:** predictions below a configurable threshold are marked *Needs Human Review*.
 - **SLA recommendation:** maps priority to a response window (high = 1 h, medium = 8 h, low = 24 h).
+- **Structured ticket management:** the Ticket Register supports search, filtering, sorting, ticket review, category/priority/status edits, SLA updates and database persistence.
+- **Clear status indicators:** priority badges use red for high, orange for medium and green for low; routing status uses green for auto-routed and amber for human review.
+- **Consistent dashboard components:** KPI cards, status badges, bordered chart containers and uniform filters provide a predictable operations interface.
 - **Bulk classification:** upload a CSV, review and edit predictions in a table, then export or save to SQL.
 - **Ticket register:** search, filter, sort and export every classified ticket.
 - **Operations dashboard:** volume, priority mix, automation rate and review workload, with filters.
@@ -128,8 +131,8 @@ flowchart TB
     NAV["Sidebar navigation"] --> OV["Overview<br/>5 KPIs, volume trend, priority workload"]
     NAV --> TT["Ticket Triage<br/>one ticket: prediction + explanation"]
     NAV --> BC["Bulk Classification<br/>CSV upload: editable review queue"]
-    NAV --> TRG["Ticket Register<br/>search, filter, sort, export"]
-    NAV --> OD["Operations Dashboard<br/>filters + charts"]
+    NAV --> TRG["Ticket Register<br/>search, filter, sort, export, manage"]
+    NAV --> OD["Operations Dashboard<br/>consistent KPIs, status indicators + charts"]
     NAV --> MC["Model Card<br/>intended use, metrics, limitations, PII policy"]
     TT -->|write| DB[("SQLite")]
     BC -->|write reviewed rows| DB
@@ -376,6 +379,15 @@ The repository ships with `tickets.db` pre-loaded with the 278 held-out test tic
 3. Click **Analyze uploaded tickets**.
 4. Correct any category, priority or status in the editable review queue.
 5. **Download enriched CSV** or **Save reviewed rows** to the database.
+
+### Manage tickets
+
+1. Open **Ticket Register**.
+2. Search for a ticket by ID, subject or body.
+3. Filter by priority and routing status, or sort by date, confidence or ticket ID.
+4. Expand **Manage selected ticket** to review the full subject and message.
+5. Update the category, priority, review status or SLA, then save the changes to SQLite.
+6. Use **Download filtered CSV** to export the current filtered register.
 
 ### Example
 
