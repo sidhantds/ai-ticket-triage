@@ -230,6 +230,31 @@ st.markdown("""
     background: #FFFFFF;
 }
 .stTabs [data-baseweb="tab-list"] {gap: 12px;}
+.priority-badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    color: #FFFFFF;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 0.15rem;
+}
+.priority-high {background-color: #DC2626;}
+.priority-medium {background-color: #F97316;}
+.priority-low {background-color: #16A34A;}
+.result-card {
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 16px;
+    background: #FFFFFF;
+    min-height: 92px;
+}
+.result-card-label {
+    color: #6B7280;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -372,8 +397,8 @@ if page == "Overview":
                 category_orders={"predicted_priority": ["high", "medium", "low"]},
                 color_discrete_map={
                     "high": "#DC2626",
-                    "medium": "#F59E0B",
-                    "low": "#6B7280",
+                    "medium": "#F97316",
+                    "low": "#16A34A",
                 },
             )
             fig.update_layout(
@@ -447,7 +472,15 @@ elif page == "Ticket Triage":
         st.markdown("---")
         c1, c2, c3 = st.columns(3)
         c1.metric("Recommended category", result["category"].title())
-        c2.metric("Recommended priority", result["priority"].title())
+        priority_class = f"priority-{result['priority']}"
+        priority_label = result["priority"].title()
+        c2.markdown(
+            '<div class="result-card">'
+            '<div class="result-card-label">Recommended priority</div>'
+            f'<span class="priority-badge {priority_class}">{priority_label}</span>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
         c3.metric("Recommended SLA", f"{result['sla_hours']} hour(s)")
 
         tab1, tab2 = st.tabs(["Prediction", "Alternative categories"])
@@ -631,8 +664,32 @@ elif page == "Ticket Register":
             filtered = filtered.sort_values("ticket_id", ascending=True)
 
         st.caption(f"{len(filtered)} matching tickets")
+        priority_styles = (
+            filtered.style.map(
+                lambda value: (
+                    "background-color: #DC2626; color: #FFFFFF; font-weight: 700;"
+                    if value == "high"
+                    else "background-color: #F97316; color: #FFFFFF; font-weight: 700;"
+                    if value == "medium"
+                    else "background-color: #16A34A; color: #FFFFFF; font-weight: 700;"
+                    if value == "low"
+                    else ""
+                ),
+                subset=["priority"],
+            )
+            .map(
+                lambda value: (
+                    "background-color: #FEF3C7; color: #92400E; font-weight: 700;"
+                    if value == "Needs Human Review"
+                    else "background-color: #DCFCE7; color: #166534; font-weight: 700;"
+                    if value == "Auto-Routed"
+                    else ""
+                ),
+                subset=["status"],
+            )
+        )
         st.dataframe(
-            filtered,
+            priority_styles,
             hide_index=True,
             use_container_width=True,
             column_config={
@@ -703,7 +760,13 @@ elif page == "Operations Dashboard":
         with right:
             st.subheader("Tickets by priority")
             fig = px.pie(priority_counts, names="predicted_priority", values="tickets",
-                         hole=0.55, color_discrete_sequence=["#374151", "#6B7280", "#D1D5DB"])
+                         hole=0.55,
+                         color="predicted_priority",
+                         color_discrete_map={
+                             "high": "#DC2626",
+                             "medium": "#F97316",
+                             "low": "#16A34A",
+                         })
             fig.update_layout(margin={"l": 20, "r": 20, "t": 20, "b": 20})
             st.plotly_chart(fig, use_container_width=True)
 
