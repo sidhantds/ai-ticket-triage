@@ -2,6 +2,8 @@
 
 An AI-assisted support-ticket triage system that classifies customer issues into departments, predicts handling priority, recommends an SLA, explains each decision, and flags low-confidence predictions for human review.
 
+**Live demo:** https://ai-ticket-triage10.streamlit.app
+
 ![Python](https://img.shields.io/badge/Python-3.12-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.52-red)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.6.1-orange)
@@ -348,6 +350,10 @@ streamlit run app.py
 ```
 
 Then open the local URL shown in the terminal, usually `http://localhost:8501`.
+
+### Deploying to Streamlit Community Cloud
+
+Set **Python 3.12** under *Advanced settings* when you deploy (or later under *App settings → General*). Community Cloud does **not** read `.python-version`. On Python 3.14 the pinned `scikit-learn==1.6.1` has no prebuilt wheel, and the build stalls.
 
 The repository ships with `tickets.db` pre-loaded with the 278 held-out test tickets and their predictions, so the dashboard and register have data immediately.
 
